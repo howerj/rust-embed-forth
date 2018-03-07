@@ -1,8 +1,12 @@
 [package]
 name = "EmbedVM"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Richard James Howe <howe.r.j.89@gmail.com>"]
+
+[lib]
+name = "embed"
+path = "embed.rs"
 
 [[bin]]
 name = "embed"
-path = "embed.rs"
+path = "main.rs"

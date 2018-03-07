@@ -5,3 +5,5 @@ embed
 *~
 *.lock
 target/*
+*.blk
+*.rlib

@@ -19,10 +19,10 @@ and replace **eforth.blk** with this file.
 
 ## Building and Running
 
-Type "cargo run" to build and run, or "make run". This will build the virtual
-machine and execute it, it should read from the standard input stream and write
-to the standard output stream. You should be greeted with a message that looks
-like this:
+Type "cargo run eforth.blk new.blk" to build and run, or "make run". This
+will build the virtual machine and execute it, it should read from the
+standard input stream and write to the standard output stream. You should
+be greeted with a message that looks something like this:
 
 	eFORTH V 1984
 	 157E 2A82
