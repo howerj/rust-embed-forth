@@ -7,3 +7,4 @@ embed
 target/*
 *.blk
 *.rlib
+*.txt

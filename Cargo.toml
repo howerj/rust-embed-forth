@@ -8,5 +8,5 @@ name = "embed"
 path = "embed.rs"
 
 [[bin]]
-name = "embed"
+name = "eforth"
 path = "main.rs"
