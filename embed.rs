@@ -68,7 +68,6 @@ fn fgetc(input: &mut Read) -> u16 {
 /// with more up to date VM images.
 /// 
 /// * TODO: Implement Index trait for u16?
-/// * TODO: Add tests, not just documentation examples
 pub struct VM {
 	/// `tracing` can be set true to enable logging, logging is very verbose
 	tracing: bool,
@@ -85,22 +84,11 @@ pub struct VM {
 	core: [u16; CORE_SIZE] 
 }
 
-// impl Default for VM {
-// 	fn default() -> Self {
-// 		let mut r = VM { tracing: false, count: 0, pc: 0, rp: RP0, sp: SP0, t: 0, core: [0; CORE_SIZE] };
-// 		for i in 0..eforth::EFORTH_CORE.len() {
-// 			r.core[i] = eforth::EFORTH_CORE[i];
-// 		}
-// 		r
-// 	}
-// }
- 
 impl VM {
 
 	/// `new` constructs a new virtual machine image that can be passed to `run`
 	/// straight away, as the program memory is copied from a default image
 	/// that contains a eForth interpreter.
-	///
 	pub fn new() -> Self { 
 		let mut r = VM { tracing: false, count: 0, pc: 0, rp: RP0, sp: SP0, t: 0, core: [0; CORE_SIZE] };
 
@@ -381,38 +369,43 @@ impl VM {
 		};
 		Some(i)
 	}
-
-
 }
 
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use std::cmp;
 
 	const BYE: u16 = 0x7b00;
 	const ADD: u16 = 0x6523;
+	const DEC: u16 = 0x6B00;
 
 	fn literal(l: u16) -> u16 {
 		if l & 0x8000 == 0x8000 { panic!("invalid literal {} > 0x7fff", format!("{}", l)) };
 		l | 0x8000
 	}
 
+	fn core(dst: &mut [u16], src: &[u16]) {
+		let len = cmp::min(src.len(), dst.len());
+		for i in 0..len {
+			dst[i] = src[i]
+		}	
+	}
+
+	fn expect(vm: &mut VM, val: i32, program: &[u16]) {
+		let (mut input, mut output) = (std::io::stdin(), std::io::stdout());
+		core(&mut vm.core, program);
+		assert_eq!(vm.run(None, &mut input, &mut output), val);
+		vm.reset();
+	}
+
 	#[test]
 	fn run() {
 		let mut vm = VM::new();
 
-		//vm.core.copy_from_slice(&[literal(99), BYE]);
-		vm.core[0] = literal(99);
-		vm.core[1] = BYE;     
-		assert_eq!(vm.run(None, &mut ::std::io::stdin(), &mut ::std::io::stdout()), 99);
-		vm.reset();
-
-		vm.core[0] = literal(2); 
-		vm.core[1] = literal(2); 
-		vm.core[2] = ADD; 
-		vm.core[3] = BYE;   
-		assert_eq!(vm.run(None, &mut ::std::io::stdin(), &mut ::std::io::stdout()), 4);
-		vm.reset();
-
+		expect(&mut vm, 99, &[literal(99), BYE]);
+		expect(&mut vm, 54, &[literal(55), DEC, BYE]);
+		expect(&mut vm, 4,  &[literal(2),  literal(2), ADD, BYE]);
 	}
 }
+
