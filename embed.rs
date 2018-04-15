@@ -88,7 +88,7 @@ impl VM {
 
 	/// `new` constructs a new virtual machine image that can be passed to `run`
 	/// straight away, as the program memory is copied from a default image
-	/// that contains a eForth interpreter.
+	/// that contains an eForth interpreter.
 	pub fn new() -> Self { 
 		let mut r = VM { tracing: false, count: 0, pc: 0, rp: RP0, sp: SP0, t: 0, core: [0; CORE_SIZE] };
 
@@ -98,14 +98,14 @@ impl VM {
 		r
 	}
 
-	/// `reset` sets the VMs registers back to their defaults, it does not zero
-	/// out the program memory or the stack contents, but the stack pointers, top
-	/// of stack register, and the program counter.
+	/// `reset` sets the VMs registers back to their defaults, it does not
+	/// reset the program memory or the stack contents, but the stack pointers,
+	/// top of stack register, and the program counter.
 	pub fn reset(&mut self) {
 		self.pc = 0;
+		self.t  = 0;
 		self.rp = RP0;
 		self.sp = SP0;
-		self.t  = 0;
 	}
 
 	/// Turns logging on/off, capturing each VM instructions execution
@@ -160,7 +160,7 @@ impl VM {
 		let mut d: u32;
 		let mut m = self.core;
 
-		VM::header(self, &mut std::io::stderr());
+		self.header(&mut std::io::stderr());
 
 		'eval: loop {
 			let instruction = m[pc as usize];
@@ -202,7 +202,7 @@ impl VM {
 					19 => { tp = rp << 1 }
 					20 => { sp = t >> 1 }
 					21 => { rp = t >> 1; tp = n }
-					22 => { tp = VM::save_file(self, block, n >> 1, (((t as u32) + 1) >> 1) as u16) } 
+					22 => { tp = self.save_file(block, n >> 1, (((t as u32) + 1) >> 1) as u16) } 
 					23 => { tp = fputc(output, t as u8) } 
 					24 => { tp = fgetc(input) }
 					25 => { if t != 0 { tp = n / t; t = n % t; n = t } else { pc = 1; tp = 10 } }
@@ -296,7 +296,7 @@ impl VM {
 			Ok(r) => r
 		};
 
-		match VM::save_block(self, &mut file, start, length) {
+		match self.save_block(&mut file, start, length) {
 			None => 0xffff,
 			Some(r) => r
 		}
@@ -336,7 +336,7 @@ impl VM {
 	///
 	/// TODO: Replace Option with proper Result return value
 	pub fn save(&self, output: &mut Write) -> Option<u16> {
-		VM::save_block(self, output, 0, CORE_SIZE as u16)
+		self.save_block(output, 0, CORE_SIZE as u16)
 	}
 
 	/// `load` the virtual machine from a source, this also reinitializes
