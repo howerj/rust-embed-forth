@@ -13,12 +13,15 @@ RM=rm -vf
 DF=./
 endif
 
-.PHONY: all clean build run
+.PHONY: all clean build run release test
 
 all: test doc build
 
 build:
 	cargo build
+
+release:
+	cargo build --release
 
 run: 
 	cargo run ${IMAGE} ${NEW}

@@ -1,6 +1,5 @@
 #![crate_name = "embed"]
 
-//use std::default::Default;
 use std::io::prelude::*;
 use std::fs::File;
 use std::path::Path;
@@ -27,7 +26,7 @@ const RP0: u16 = 0x7fff;
 ///
 /// This function returns `t` on success and `0xffff` on error
 ///
-fn fputc(output: &mut Write, t: u8) -> u16 {
+fn fputc(output: &mut dyn Write, t: u8) -> u16 {
 	let u: [u8; 1] = [t as u8];
 	if 1 == output.write(&u).unwrap() { t as u16 } else { 0xffff }
 }
@@ -46,7 +45,7 @@ fn fputc(output: &mut Write, t: u8) -> u16 {
 ///
 /// This function returns a single byte on success in the lower half a
 /// 16-bit value, and all bits set (or `0xffff`) on failure.
-fn fgetc(input: &mut Read) -> u16 {
+fn fgetc(input: &mut dyn Read) -> u16 {
 	let mut u: [u8; 1] = [0];
 	if 1 == input.read(&mut u).unwrap() { u[0] as u16 } else { 0xffff }
 }
@@ -54,8 +53,8 @@ fn fgetc(input: &mut Read) -> u16 {
 /// # Embed Virtual Machine in Rust
 ///
 /// * LICENSE:    MIT
-/// * AUTHOR:     Richard James: Howe
-/// * COPYRIGHT:  Richard James Howe (2018)
+/// * AUTHOR:     Richard James Howe
+/// * COPYRIGHT:  Richard James Howe (2018, 2020)
 /// * CONTACT:    <howe.r.j.89@gmail.com>
 /// * REPOSITORY: <https://github.com/howerj/rust-embed-forth>
 ///
@@ -65,7 +64,8 @@ fn fgetc(input: &mut Read) -> u16 {
 /// code that overflows the stack might cause a panic.
 /// 
 /// The original C VM is available at <https://github.com/howerj/embed>, along
-/// with more up to date VM images.
+/// with more up to date VM images (and perhaps even a more slightly up to date
+/// virtual machine architecture).
 /// 
 /// * TODO: Implement Index trait for u16?
 pub struct VM {
@@ -122,7 +122,9 @@ impl VM {
 	/// `run` executes the virtual machine on the currently loaded program
 	/// in `core`. The specification for the virtual machine is too long
 	/// for this document, but visit <https://github.com/howerj/embed> for
-	/// more documentation.
+	/// more documentation. This virtual machine and the image on it it likely
+	/// to be out of date and incompatible with the version taken from original
+	/// repository however.
 	///
 	/// # Arguments
 	///
@@ -155,7 +157,7 @@ impl VM {
 	/// evm.run(Some("new.blk"), &mut std::io::stdin(), &mut std::io::stdout());
 	/// ```
 	/// 
-	pub fn run(&mut self, block: Option<&str>, input: &mut Read, output: &mut Write) -> i32 {
+	pub fn run(&mut self, block: Option<&str>, input: &mut dyn Read, output: &mut dyn Write) -> i32 {
 		let (mut pc, mut rp, mut sp, mut t) = (self.pc, self.rp, self.sp, self.t);
 		let mut d: u32;
 		let mut m = self.core;
@@ -246,9 +248,9 @@ impl VM {
 	/// Print a header for a CSV file trace, if tracing is enabled, the output should be consumable
 	/// by the utility <https://github.com/carlos-jenkins/csv2vcd> which can turn a CSV file into
 	/// a VCD (Value Change Dump) file. This file can be used with a suitable waveform viewer, such
-	/// as GTKWave <http://gtkwave.sourceforge.net/> for debugging purposes. This is not a generic
+	/// as GTKWave <http://gtkwave.sourceforge.net/> for debugging purposes.
 	///
-	fn header(&self, output: &mut Write) {
+	fn header(&self, output: &mut dyn Write) {
 		if !self.tracing { return }
 		let _ignore = writeln!(output, "\"pc[15:0]\",\"instruction[15:0]\",\"t[15:0]\",\"sp[7:0]\",\"rp[7:0]\",\"TIME\"");
 	}
@@ -279,7 +281,7 @@ impl VM {
 	/// * `rp`           - return stack pointer, index into `core`
 	/// 
 	/// 
-	fn csv(&mut self, output: &mut Write, pc: u16, instruction: u16, t: u16, sp: u16, rp: u16) -> () {
+	fn csv(&mut self, output: &mut dyn Write, pc: u16, instruction: u16, t: u16, sp: u16, rp: u16) -> () {
 		if !self.tracing { return }
 		let time = if self.count == 0 { "s" } else { "ns" };
 		let _ignore = writeln!(output, "{}", format!("{:04x},{:04x},{:04x},{:02x},{:02x},{}{}", pc, instruction, t, sp, rp, self.count, time));
@@ -302,7 +304,7 @@ impl VM {
 		}
 	}
 
-	fn save_block(&self, block: &mut Write, start: u16, length: u16) -> Option<u16> {
+	fn save_block(&self, block: &mut dyn Write, start: u16, length: u16) -> Option<u16> {
 		if ((start as u32) + (length as u32)) > 0xffff { return None }
 
 		for i in start..length {
@@ -335,7 +337,7 @@ impl VM {
 	/// ```
 	///
 	/// TODO: Replace Option with proper Result return value
-	pub fn save(&self, output: &mut Write) -> Option<u16> {
+	pub fn save(&self, output: &mut dyn Write) -> Option<u16> {
 		self.save_block(output, 0, CORE_SIZE as u16)
 	}
 
@@ -357,7 +359,7 @@ impl VM {
 	/// ```
 	///
 	/// TODO: Replace Option with proper Result return value
-	pub fn load(&mut self, input: &mut Read) -> Option<u16> {
+	pub fn load(&mut self, input: &mut dyn Read) -> Option<u16> {
 		let mut i = 0 as u16;
 		self.reset();
 		while i < (CORE_SIZE as u16) {

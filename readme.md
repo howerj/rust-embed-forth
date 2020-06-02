@@ -3,7 +3,7 @@
 | Project   | Forth Virtual Machine Written in Rust |
 | --------- | ------------------------------------- |
 | Author    | Richard James Howe                    |
-| Copyright | 2018 Richard James Howe               |
+| Copyright | 2018,2020 Richard James Howe          |
 | License   | MIT                                   |
 | Email     | howe.r.j.89@gmail.com                 |
 
@@ -14,8 +14,8 @@ machine, which contains a Forth interpreter. The meta-compiler and source for
 the image are absent from this project, as is the virtual machine specification
 and extensive documentation for the Forth interpreter and system, they are
 available in the original project. For the latest version of the image
-**eforth.blk**, download <https://github.com/howerj/embed/raw/master/eforth.blk>
-and replace **eforth.blk** with this file.
+**eforth.blk**, view the <https://github.com/howerj/embed>
+and replace **eforth.blk** with the images generated from that project.
 
 ## Building and Running
 
@@ -27,11 +27,12 @@ be greeted with a message that looks something like this:
 	eFORTH V 1984
 	 157E 2A82
 
-Type 'words' for a list of all implemented Forth functions, for about eForth
-visit <http://forth.org/eforth.html>, or look at the original [embed][] project.
+Type 'words' and hit return for a list of all implemented Forth functions, 
+for about eForth visit <http://forth.org/eforth.html>, or look at the 
+[embed][] project which is better documented.
 
 For a list of problems, a 'To-Do' list, and more comments about this project
-view the source file [embed.rs][]
+view the source file [embed.rs][].
 
 [Rust]: https://www.rust-lang.org/en-US/
 [embed]: https://github.com/howerj/embed
